@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">CleanArchitectureDemo</string>
+
+    <string name="please_enter_user_name">Please enter user name</string>
+    <string name="created">Created</string>
+    <string name="updated">Updated</string>
+    <string name="pushed">Pushed</string>
+    <string name="full_name">Full Name</string>
+    <string name="reload">Reload</string>
+</resources>
