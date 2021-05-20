@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import com.bumptech.glide.Glide;
 import com.examples.cleanarchitecturedemo.R;
 import com.examples.cleanarchitecturedemo.rest.models.Repo;
 
@@ -24,13 +25,16 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.VH> {
     private final LayoutInflater inflater;
     private final ArrayList<Repo> repos = new ArrayList<>();
 
-    private OnClickListener listener;
+    private OnItemAdapterClickListener listener;
 
-    public interface OnClickListener {
+    public interface OnItemAdapterClickListener {
+
         void onLoadMoreClick();
+
+        void onRepoClicked(Repo r);
     }
 
-    public ReposAdapter(Context context, OnClickListener listener) {
+    public ReposAdapter(Context context, OnItemAdapterClickListener listener) {
         this.inflater = LayoutInflater.from(context);
         this.listener = listener;
     }
@@ -47,7 +51,7 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.VH> {
             View view = inflater.inflate(R.layout.loading_list_item, parent, false);
             return new LoadMoreVH(view);
         }
-        View view = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+        View view = inflater.inflate(R.layout.list_item_repo, parent, false);
         return new RepoVH(view);
     }
 
@@ -88,22 +92,32 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.VH> {
             super(itemView);
         }
 
-        public abstract void onBind(Object item, OnClickListener listener);
+        public abstract void onBind(Object item, OnItemAdapterClickListener listener);
     }
 
     public static class RepoVH extends VH {
 
         private final TextView tvText;
+        private final ImageView ivAvatarId;
 
         public RepoVH(@NonNull View itemView) {
             super(itemView);
-            tvText = itemView.findViewById(android.R.id.text1);
+
+            tvText = itemView.findViewById(R.id.tv_name);
+            ivAvatarId = itemView.findViewById(R.id.iv_avatar_id);
         }
 
-        public void onBind(Object item, OnClickListener listener) {
-            Repo repo = (Repo) item;
+        public void onBind(Object item, OnItemAdapterClickListener listener) {
+            final Repo repo = (Repo) item;
+            itemView.setOnClickListener(v -> {
+                listener.onRepoClicked(repo);
+            });
             tvText.setText(repo.name);
+            Glide.with(itemView.getContext()).load(repo.owner.avatarUrl).into(ivAvatarId);
+
         }
+
+
     }
 
     public static class LoadMoreVH extends VH {
@@ -112,11 +126,12 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.VH> {
 
         public LoadMoreVH(View itemView) {
             super(itemView);
+
             imageView = itemView.findViewById(R.id.iv_plus);
         }
 
         @Override
-        public void onBind(Object item, OnClickListener listener) {
+        public void onBind(Object item, OnItemAdapterClickListener listener) {
             boolean isLoadMore = (boolean) item;
             if (isLoadMore) {
                 imageView.setVisibility(View.VISIBLE);
@@ -125,5 +140,7 @@ public class ReposAdapter extends RecyclerView.Adapter<ReposAdapter.VH> {
             }
             imageView.setOnClickListener(v -> listener.onLoadMoreClick());
         }
+
+
     }
 }

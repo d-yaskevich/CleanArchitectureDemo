@@ -2,12 +2,15 @@ package com.examples.cleanarchitecturedemo;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +20,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.examples.cleanarchitecturedemo.adapters.ReposAdapter;
 import com.examples.cleanarchitecturedemo.rest.API;
+import com.examples.cleanarchitecturedemo.rest.models.Direction;
+import com.examples.cleanarchitecturedemo.rest.models.Repo;
 import com.examples.cleanarchitecturedemo.rest.models.Sort;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -32,7 +37,8 @@ import rx.schedulers.Schedulers;
 public class MainActivity extends AppCompatActivity
         implements ChipGroup.OnCheckedChangeListener,
         SwipeRefreshLayout.OnRefreshListener,
-        ReposAdapter.OnClickListener {
+        ReposAdapter.OnItemAdapterClickListener,
+        View.OnClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -40,6 +46,7 @@ public class MainActivity extends AppCompatActivity
 
     private ChipGroup chipGroup;
     private Sort selectedSort = Sort.Created;
+    private Direction currentDirection = Direction.Ask;
     private final HashMap<Integer, Sort> sortHashMap = new HashMap<>();
 
     private int page = 0;
@@ -49,6 +56,10 @@ public class MainActivity extends AppCompatActivity
     private ReposAdapter adapter;
 
     private ViewGroup vgProgress;
+
+    private Button btnDirectionAsc;
+    private Button btnDirectionDesc;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +95,12 @@ public class MainActivity extends AppCompatActivity
         rvReps.setAdapter(adapter);
 
         vgProgress = findViewById(R.id.vg_progress);
+
+        btnDirectionAsc = findViewById(R.id.btn_direction_asc);
+        btnDirectionAsc.setOnClickListener(this);
+        btnDirectionDesc = findViewById(R.id.btn_direction_desc);
+        btnDirectionDesc.setOnClickListener(this);
+
     }
 
     private void hideKeyboard() {
@@ -131,9 +148,17 @@ public class MainActivity extends AppCompatActivity
         loadRepos(true);
     }
 
+
+
     @Override
     public void onLoadMoreClick() {
         loadRepos(false);
+    }
+
+    @Override
+    public void onRepoClicked(Repo r) {
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(r.owner.htmlUrl));
+        startActivity(browserIntent);
     }
 
     private void loadRepos(boolean refresh) {
@@ -143,15 +168,15 @@ public class MainActivity extends AppCompatActivity
         if (refresh) page = 1;
         else page++;
 
-        getRepos(user, sort);
+        getRepos(user, sort, currentDirection);
     }
 
     private Subscription subscription;
 
     private void getRepos(String user,
-                          String sort) {
-        Log.d(TAG, "getRepos(" + user + ", " + sort + ", " + page + ", " + PER_PAGE + ")");
-        subscription = API.github().listRepos(user, sort, page, PER_PAGE)
+                          String sort, Direction direction) {
+        Log.d(TAG, "getRepos(" + user + ", " + sort + ", " + page + ", " + PER_PAGE+", " + direction + ")");
+        subscription = API.github().listRepos(user, sort, page, PER_PAGE, direction.getValue())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe(() -> {
@@ -186,5 +211,24 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
         subscription.unsubscribe();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_direction_asc:
+                currentDirection = Direction.Ask;
+                loadRepos(true);
+                break;
+            case R.id.btn_direction_desc:
+                currentDirection = Direction.Desk;
+                loadRepos(true);
+                break;
+        }
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
 }

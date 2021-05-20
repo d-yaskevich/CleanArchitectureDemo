@@ -20,6 +20,7 @@ public interface GithubService {
     Single<ArrayList<Repo>> listRepos(@Path("user") String user,
                                       @Query("sort") String sort,
                                       @Query("page") int page,
-                                      @Query("per_page") int perPage);
+                                      @Query("per_page") int perPage,
+                                      @Query("direction") String direction);
 
 }
