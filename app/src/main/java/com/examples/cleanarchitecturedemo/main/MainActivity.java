@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo;
+package com.examples.cleanarchitecturedemo.main;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.examples.cleanarchitecturedemo.R;
 import com.examples.cleanarchitecturedemo.adapters.ReposAdapter;
-import com.examples.cleanarchitecturedemo.rest.API;
 import com.examples.cleanarchitecturedemo.rest.models.Sort;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity
         implements ChipGroup.OnCheckedChangeListener,

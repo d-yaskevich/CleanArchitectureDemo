@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo;
+package com.examples.cleanarchitecturedemo.main;
 
 import com.examples.cleanarchitecturedemo.rest.API;
 import com.examples.cleanarchitecturedemo.rest.GithubService;
