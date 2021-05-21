@@ -1,8 +1,9 @@
-package com.examples.cleanarchitecturedemo.main;
+package com.examples.cleanarchitecturedemo.storage;
 
+import com.examples.cleanarchitecturedemo.main.MainContract;
 import com.examples.cleanarchitecturedemo.rest.API;
-import com.examples.cleanarchitecturedemo.rest.GithubService;
-import com.examples.cleanarchitecturedemo.rest.models.Repo;
+import com.examples.cleanarchitecturedemo.rest.github.GithubService;
+import com.examples.cleanarchitecturedemo.rest.github.models.Repo;
 
 import java.util.ArrayList;
 
@@ -10,11 +11,11 @@ import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class MainRepository {
+public class Repository implements MainContract.Repository {
 
-    private static final MainRepository INSTANCE = new MainRepository();
+    private static final Repository INSTANCE = new Repository();
 
-    public static MainRepository getInstance() {
+    public static Repository getInstance() {
         return INSTANCE;
     }
 

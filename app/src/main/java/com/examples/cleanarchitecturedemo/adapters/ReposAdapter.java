@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.examples.cleanarchitecturedemo.R;
-import com.examples.cleanarchitecturedemo.rest.models.Repo;
+import com.examples.cleanarchitecturedemo.rest.github.models.Repo;
 
 import java.util.ArrayList;
 

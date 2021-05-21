@@ -1,6 +1,6 @@
-package com.examples.cleanarchitecturedemo.rest;
+package com.examples.cleanarchitecturedemo.rest.github;
 
-import com.examples.cleanarchitecturedemo.rest.models.Repo;
+import com.examples.cleanarchitecturedemo.rest.github.models.Repo;
 
 import java.util.ArrayList;
 
