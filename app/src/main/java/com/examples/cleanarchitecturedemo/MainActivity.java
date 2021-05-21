@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private final MainRepository mainRepository = MainRepository.getInstance();
+
     private EditText etUserName;
 
     private ChipGroup chipGroup;
@@ -151,9 +153,7 @@ public class MainActivity extends AppCompatActivity
     private void getRepos(String user,
                           String sort) {
         Log.d(TAG, "getRepos(" + user + ", " + sort + ", " + page + ", " + PER_PAGE + ")");
-        subscription = API.github().listRepos(user, sort, page, PER_PAGE)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        subscription = mainRepository.getRepos(user, sort, page, PER_PAGE)
                 .doOnSubscribe(() -> {
                     if (page == 1) {
                         swipeRefreshLayout.setRefreshing(true);
@@ -185,6 +185,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        subscription.unsubscribe();
+        if (!subscription.isUnsubscribed()) {
+            subscription.unsubscribe();
+        }
     }
 }
