@@ -14,7 +14,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class API {
 
     private static <T> T builder(Class<T> service, String baseUrl, OkHttpClient client) {
-
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
                 .create();
