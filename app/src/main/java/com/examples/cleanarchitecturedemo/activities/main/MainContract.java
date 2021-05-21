@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo.main;
+package com.examples.cleanarchitecturedemo.activities.main;
 
 public interface MainContract {
     interface View {

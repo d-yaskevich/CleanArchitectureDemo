@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo.main;
+package com.examples.cleanarchitecturedemo.activities.main;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

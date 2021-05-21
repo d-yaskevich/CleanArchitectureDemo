@@ -1,6 +1,6 @@
 package com.examples.cleanarchitecturedemo.storage;
 
-import com.examples.cleanarchitecturedemo.main.MainContract;
+import com.examples.cleanarchitecturedemo.activities.main.MainContract;
 import com.examples.cleanarchitecturedemo.rest.API;
 import com.examples.cleanarchitecturedemo.rest.github.GithubService;
 import com.examples.cleanarchitecturedemo.rest.github.models.Repo;
