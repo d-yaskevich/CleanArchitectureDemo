@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo.rest.models;
+package com.examples.cleanarchitecturedemo.rest.github.models;
 
 import com.google.gson.annotations.SerializedName;
 

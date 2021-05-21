@@ -16,8 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.examples.cleanarchitecturedemo.adapters.ReposAdapter;
-import com.examples.cleanarchitecturedemo.rest.API;
-import com.examples.cleanarchitecturedemo.rest.models.Sort;
+import com.examples.cleanarchitecturedemo.rest.github.models.Sort;
+import com.examples.cleanarchitecturedemo.storage.Repository;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.snackbar.Snackbar;
@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity
         implements ChipGroup.OnCheckedChangeListener,
@@ -36,7 +34,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private final MainRepository mainRepository = MainRepository.getInstance();
+    private final Repository repository = Repository.getInstance();
 
     private EditText etUserName;
 
@@ -153,7 +151,7 @@ public class MainActivity extends AppCompatActivity
     private void getRepos(String user,
                           String sort) {
         Log.d(TAG, "getRepos(" + user + ", " + sort + ", " + page + ", " + PER_PAGE + ")");
-        subscription = mainRepository.getRepos(user, sort, page, PER_PAGE)
+        subscription = repository.getRepos(user, sort, page, PER_PAGE)
                 .doOnSubscribe(() -> {
                     if (page == 1) {
                         swipeRefreshLayout.setRefreshing(true);
@@ -185,7 +183,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        if (!subscription.isUnsubscribed()) {
+        if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
         }
     }

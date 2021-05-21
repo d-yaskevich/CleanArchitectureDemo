@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo.rest;
+package com.examples.cleanarchitecturedemo.rest.github;
 
 public class GithubConfig {
     public static final String GITHUB_ACCEPT = "application/vnd.github.inertia-preview+json";

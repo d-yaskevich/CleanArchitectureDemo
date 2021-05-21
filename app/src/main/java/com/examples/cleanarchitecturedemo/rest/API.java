@@ -1,5 +1,7 @@
 package com.examples.cleanarchitecturedemo.rest;
 
+import com.examples.cleanarchitecturedemo.rest.github.GithubConfig;
+import com.examples.cleanarchitecturedemo.rest.github.GithubService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -40,5 +42,7 @@ public class API {
 
         return builder(GithubService.class, GithubConfig.GITHUB_API_BASE_URL, client);
     }
+
+    // can add any other APIs
 
 }

@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo.rest.models;
+package com.examples.cleanarchitecturedemo.rest.github.models;
 
 public enum Sort {
     Created("created"),
