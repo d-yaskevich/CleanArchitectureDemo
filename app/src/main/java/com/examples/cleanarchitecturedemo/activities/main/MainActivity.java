@@ -1,4 +1,4 @@
-package com.examples.cleanarchitecturedemo;
+package com.examples.cleanarchitecturedemo.activities.main;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,10 +11,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.examples.cleanarchitecturedemo.R;
 import com.examples.cleanarchitecturedemo.adapters.ReposAdapter;
 import com.examples.cleanarchitecturedemo.rest.github.models.Sort;
 import com.examples.cleanarchitecturedemo.storage.Repository;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private final Repository repository = Repository.getInstance();
+    private MainActivityViewModel viewModel;
 
     private EditText etUserName;
 
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        viewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
 
         etUserName = findViewById(R.id.et_user_name);
         etUserName.setOnEditorActionListener((v, actionId, event) -> {
