@@ -3,7 +3,6 @@ package com.examples.cleanarchitecturedemo.activities.main;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -17,16 +16,15 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.examples.cleanarchitecturedemo.R;
 import com.examples.cleanarchitecturedemo.adapters.ReposAdapter;
+import com.examples.cleanarchitecturedemo.rest.github.models.Repo;
 import com.examples.cleanarchitecturedemo.rest.github.models.Sort;
-import com.examples.cleanarchitecturedemo.storage.Repository;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import rx.Subscription;
 
 public class MainActivity extends AppCompatActivity
         implements ChipGroup.OnCheckedChangeListener,
@@ -36,16 +34,12 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private final Repository repository = Repository.getInstance();
+    private MainContract.Presenter presenter;
 
     private EditText etUserName;
 
     private ChipGroup chipGroup;
-    private Sort selectedSort = Sort.Created;
     private final HashMap<Integer, Sort> sortHashMap = new HashMap<>();
-
-    private int page = 0;
-    private static final int PER_PAGE = 5;
 
     private SwipeRefreshLayout swipeRefreshLayout;
     private ReposAdapter adapter;
@@ -57,10 +51,13 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        presenter = new MainPresenter();
+        presenter.attachView(this);
+
         etUserName = findViewById(R.id.et_user_name);
         etUserName.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                loadRepos(true);
+                presenter.onActionSearch();
                 v.clearFocus();
                 hideKeyboard();
                 return true;
@@ -86,6 +83,13 @@ public class MainActivity extends AppCompatActivity
         rvReps.setAdapter(adapter);
 
         vgProgress = findViewById(R.id.vg_progress);
+        presenter.viewIsReady();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        presenter.detachView();
     }
 
     private void hideKeyboard() {
@@ -112,6 +116,8 @@ public class MainActivity extends AppCompatActivity
             int chipId = entry.getKey();
             Sort sort = entry.getValue();
 
+            Sort selectedSort = presenter.getSelectedSort();
+
             if (selectedSort.equals(sort)) {
                 Chip chip = chipGroup.findViewById(chipId);
                 chip.setChecked(true);
@@ -123,70 +129,63 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onCheckedChanged(ChipGroup group, int checkedId) {
         Sort sort = sortHashMap.get(checkedId);
-        if (sort == null) return;
-        selectedSort = sort;
-        loadRepos(true);
+        if (sort == null) {
+            updateSelectedChip();
+            return;
+        }
+        presenter.onSortSelected(sort);
     }
 
     @Override
     public void onRefresh() {
-        loadRepos(true);
+        presenter.onRefresh();
     }
 
     @Override
     public void onLoadMoreClick() {
-        loadRepos(false);
+        presenter.onLoadMore();
     }
 
-    private void loadRepos(boolean refresh) {
-        String user = etUserName.getText().toString();
-        String sort = selectedSort.getValue();
-
-        if (refresh) page = 1;
-        else page++;
-
-        getRepos(user, sort);
+    @Override
+    public String getUserName() {
+        return etUserName.getText().toString();
     }
 
-    private Subscription subscription;
+    @Override
+    public void updateRepos(ArrayList<Repo> repos, boolean reset) {
+        if (reset) adapter.resetRepos(repos);
+        else adapter.addRepos(repos);
+    }
 
-    private void getRepos(String user,
-                          String sort) {
-        Log.d(TAG, "getRepos(" + user + ", " + sort + ", " + page + ", " + PER_PAGE + ")");
-        subscription = repository.getRepos(user, sort, page, PER_PAGE)
-                .doOnSubscribe(() -> {
-                    if (page == 1) {
-                        swipeRefreshLayout.setRefreshing(true);
-                    } else {
-                        vgProgress.setVisibility(View.VISIBLE);
-                    }
-                })
-                .doAfterTerminate(() -> {
-                    if (page == 1) {
-                        swipeRefreshLayout.setRefreshing(false);
-                    } else {
-                        vgProgress.setVisibility(View.GONE);
-                    }
-                })
-                .subscribe(repos -> {
-                    if (page == 1) {
-                        adapter.resetRepos(repos);
-                    } else {
-                        adapter.addRepos(repos);
-                    }
-                }, error -> {
-                    String message = error.getMessage();
-                    if (message == null) message = "Unknown error";
-                    Snackbar.make(etUserName, message, Snackbar.LENGTH_LONG)
-                            .setAction(R.string.reload, v -> loadRepos(true)).show();
-                });
+    @Override
+    public void showReloadMessage(String message, View.OnClickListener listener) {
+        Snackbar.make(etUserName, message, Snackbar.LENGTH_LONG)
+                .setAction(R.string.reload, listener).show();
+    }
+
+    @Override
+    public void startRefreshing() {
+        swipeRefreshLayout.setRefreshing(true);
+    }
+
+    @Override
+    public void stopRefreshing() {
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void showProgress() {
+        vgProgress.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideProgress() {
+        vgProgress.setVisibility(View.GONE);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (subscription != null && !subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-        }
+        presenter.onPause();
     }
 }

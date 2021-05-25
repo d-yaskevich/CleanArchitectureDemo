@@ -22,6 +22,7 @@ public class Repository implements MainContract.Repository {
     private final GithubService githubApi = API.github();
     // can add any another data sources: database, files, etc
 
+    @Override
     public Single<ArrayList<Repo>> getRepos(String user, String sort, int page, int perPage) {
         // choose data source
         return githubApi.listRepos(user, sort, page, perPage).compose(new AsyncTransformer<>());
