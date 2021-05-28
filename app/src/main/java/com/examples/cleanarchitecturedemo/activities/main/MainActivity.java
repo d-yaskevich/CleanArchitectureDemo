@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,7 +37,6 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private final Repository repository = Repository.getInstance();
     private MainActivityViewModel viewModel;
 
     private EditText etUserName;
@@ -44,9 +44,6 @@ public class MainActivity extends AppCompatActivity
     private ChipGroup chipGroup;
     private Sort selectedSort = Sort.Created;
     private final HashMap<Integer, Sort> sortHashMap = new HashMap<>();
-
-    private int page = 0;
-    private static final int PER_PAGE = 5;
 
     private SwipeRefreshLayout swipeRefreshLayout;
     private ReposAdapter adapter;
@@ -62,7 +59,7 @@ public class MainActivity extends AppCompatActivity
         etUserName = findViewById(R.id.et_user_name);
         etUserName.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                loadRepos(true);
+                viewModel.loadRepos(getUserName(), selectedSort, true);
                 v.clearFocus();
                 hideKeyboard();
                 return true;
@@ -88,6 +85,33 @@ public class MainActivity extends AppCompatActivity
         rvReps.setAdapter(adapter);
 
         vgProgress = findViewById(R.id.vg_progress);
+
+        viewModel.firstLoadingState.observe(this, isFirstLoading -> {
+            swipeRefreshLayout.setRefreshing(isFirstLoading);
+        });
+        viewModel.loadingState.observe(this, isLoading -> {
+            if (isLoading) vgProgress.setVisibility(View.VISIBLE);
+            else vgProgress.setVisibility(View.GONE);
+        });
+        viewModel.state.observe(this, viewState -> {
+            if (!viewState.errorMessage.isEmpty()) {
+                Snackbar.make(etUserName, viewState.errorMessage, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.reload, v -> {
+                            viewModel.loadRepos(getUserName(), selectedSort, true);
+                        }).show();
+                return;
+            }
+
+            if (viewState.reset) {
+                adapter.resetRepos(viewState.repos);
+            } else {
+                adapter.addRepos(viewState.repos);
+            }
+        });
+    }
+
+    private String getUserName() {
+        return etUserName.getText().toString();
     }
 
     private void hideKeyboard() {
@@ -127,68 +151,22 @@ public class MainActivity extends AppCompatActivity
         Sort sort = sortHashMap.get(checkedId);
         if (sort == null) return;
         selectedSort = sort;
-        loadRepos(true);
+        viewModel.loadRepos(getUserName(), selectedSort, true);
     }
 
     @Override
     public void onRefresh() {
-        loadRepos(true);
+        viewModel.loadRepos(getUserName(), selectedSort, true);
     }
 
     @Override
     public void onLoadMoreClick() {
-        loadRepos(false);
-    }
-
-    private void loadRepos(boolean refresh) {
-        String user = etUserName.getText().toString();
-        String sort = selectedSort.getValue();
-
-        if (refresh) page = 1;
-        else page++;
-
-        getRepos(user, sort);
-    }
-
-    private Subscription subscription;
-
-    private void getRepos(String user,
-                          String sort) {
-        Log.d(TAG, "getRepos(" + user + ", " + sort + ", " + page + ", " + PER_PAGE + ")");
-        subscription = repository.getRepos(user, sort, page, PER_PAGE)
-                .doOnSubscribe(() -> {
-                    if (page == 1) {
-                        swipeRefreshLayout.setRefreshing(true);
-                    } else {
-                        vgProgress.setVisibility(View.VISIBLE);
-                    }
-                })
-                .doAfterTerminate(() -> {
-                    if (page == 1) {
-                        swipeRefreshLayout.setRefreshing(false);
-                    } else {
-                        vgProgress.setVisibility(View.GONE);
-                    }
-                })
-                .subscribe(repos -> {
-                    if (page == 1) {
-                        adapter.resetRepos(repos);
-                    } else {
-                        adapter.addRepos(repos);
-                    }
-                }, error -> {
-                    String message = error.getMessage();
-                    if (message == null) message = "Unknown error";
-                    Snackbar.make(etUserName, message, Snackbar.LENGTH_LONG)
-                            .setAction(R.string.reload, v -> loadRepos(true)).show();
-                });
+        viewModel.loadRepos(getUserName(), selectedSort, false);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (subscription != null && !subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-        }
+        viewModel.cancelRepos();
     }
 }
